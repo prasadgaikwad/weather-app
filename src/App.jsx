@@ -8,6 +8,7 @@ import ErrorDisplay from './components/ErrorDisplay';
 import { fetchWeatherData } from './utils/api';
 
 // Default location: Dallas, US
+// Default location: Dallas, US
 const DEFAULT_LOCATION = {
   lat: 32.7767,
   lon: -96.7970,
@@ -15,16 +16,47 @@ const DEFAULT_LOCATION = {
 };
 
 export default function App() {
-  const [location, setLocation] = useState(DEFAULT_LOCATION);
+  // Initialize state from localStorage if available
+  const [location, setLocation] = useState(() => {
+    const saved = localStorage.getItem('weather-app-location');
+    return saved ? JSON.parse(saved) : null; // Start null to differentiate "no saved data" from "default"
+  });
+
   const [weatherData, setWeatherData] = useState([]);
   const [currentWeather, setCurrentWeather] = useState(null);
-  const [daysBuffer, setDaysBuffer] = useState(5);
-  const [unit, setUnit] = useState('celsius');
+
+  const [daysBuffer, setDaysBuffer] = useState(() => {
+    const saved = localStorage.getItem('weather-app-days');
+    return saved ? parseInt(saved, 10) : 1; // Default to 1 day as requested
+  });
+
+  const [unit, setUnit] = useState(() => {
+    return localStorage.getItem('weather-app-unit') || 'celsius';
+  });
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
+  // Persist state changes
+  useEffect(() => {
+    if (location) {
+      localStorage.setItem('weather-app-location', JSON.stringify(location));
+    }
+  }, [location]);
+
+  useEffect(() => {
+    localStorage.setItem('weather-app-days', daysBuffer.toString());
+  }, [daysBuffer]);
+
+  useEffect(() => {
+    localStorage.setItem('weather-app-unit', unit);
+  }, [unit]);
+
   // Fetch weather data when location or daysBuffer changes
   const loadWeatherData = useCallback(async () => {
+    // If we don't have a location yet (initial load with no saved data), don't fetch
+    if (!location) return;
+
     setLoading(true);
     setError('');
 
@@ -40,13 +72,16 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [location.lat, location.lon, daysBuffer]);
+  }, [location, daysBuffer]);
 
-  // Get user's location on mount
+  // Get user's location on mount handles the fallback logic
   useEffect(() => {
-    const getUserLocation = async () => {
+    const initLocation = async () => {
+      // If we already have a saved location, use it
+      if (location) return;
+
       if (!navigator.geolocation) {
-        // Geolocation not supported, use default
+        setLocation(DEFAULT_LOCATION);
         return;
       }
 
@@ -88,16 +123,19 @@ export default function App() {
       } catch (err) {
         // User denied or error, use default location
         console.log('Geolocation unavailable, using default location');
+        setLocation(DEFAULT_LOCATION);
       }
     };
 
-    getUserLocation();
-  }, []);
+    initLocation();
+  }, []); // Only run on mount
 
-  // Fetch weather when location or daysBuffer changes
+  // Fetch weather when location (once set) or daysBuffer changes
   useEffect(() => {
-    loadWeatherData();
-  }, [loadWeatherData]);
+    if (location) {
+      loadWeatherData();
+    }
+  }, [loadWeatherData, location]);
 
   const handleLocationChange = (newLocation) => {
     setLocation(newLocation);
@@ -112,7 +150,11 @@ export default function App() {
     <div className="min-h-screen bg-slate-900 dark:bg-slate-900 light:bg-slate-100 transition-colors duration-300">
       {/* Safe area padding for iOS */}
       <div className="pt-safe-top pb-safe-bottom">
-        <Header location={location} onLocationChange={handleLocationChange} />
+        <Header
+          location={location || DEFAULT_LOCATION}
+          onLocationChange={handleLocationChange}
+          onRefresh={() => loadWeatherData()}
+        />
 
         <main className="py-6">
           {error ? (

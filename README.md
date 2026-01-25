@@ -19,6 +19,8 @@ A beautiful, minimalistic weather dashboard that visualizes daily temperature ra
   - Auto-detects your location on startup.
   - Search for any city worldwide with instant geocoding.
   - Displays readable city names (e.g., "London, UK") instead of coordinates.
+  - **State Persistence**: Remembers your city, unit preference, and days range across sessions.
+  - **Manual Refresh**: Instantly update weather data with the refresh button.
 - **Current Conditions**: Floating card showing current weather, icon, and dual-temperature display.
 - **Responsive Design**: Works beautifully on desktop, tablet, and mobile.
 - **iOS Ready**: Built with Capacitor for native iOS deployment.
@@ -86,4 +88,4 @@ In Xcode, select your connected iPhone or a simulator and press **Cmd+R** to run
 
 ## License
 
-MIT
+[MIT](LICENSE)
