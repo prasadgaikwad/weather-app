@@ -47,6 +47,13 @@ This project was built as an experiment using **Google Antigravity**, an advance
   - Native iOS configuration via Capacitor
   - Documentation and testing
 
+## Future Enhancements
+
+- **UI/UX Improvements**:
+  - Create a more user-friendly and visually appealing interface.
+  - Include dark mode support.
+  - Add weather animations (e.g., rain, snow, and sunshine effects).
+  
 ## Getting Started
 
 ### Prerequisites
